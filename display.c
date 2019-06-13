@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <assert.h>
-#include "chessboard.h"
+#include "display.h"
 
 // square_width does not include the outer boundaries of the board.
 //
@@ -25,9 +21,8 @@
 // It must be true that:
 // BUFFER_SIZE > 18 * (board_width + 1) + 8 * (board_width + 1 + 8*13).
 // (The +1 is to account for newlines.)
-int square_width = 7;
-int board_width = 58;
-const int BUFFER_SIZE = 2367;
+const int square_width = 7;
+const int board_width = 58;
 // The array display_squares converts the standard square enum (A8=0,
 //..., H1=63) to buffer indices.  For instance, display_squares[A8]
 //will give the index of the character at the center of the A8 square
@@ -41,49 +36,6 @@ const int display_squares[64] =
  1536, 1556, 1576, 1596, 1616, 1636, 1656, 1676,
  1817, 1837, 1857, 1877, 1897, 1917, 1937, 1957,
  2098, 2118, 2138, 2158, 2178, 2198, 2218, 2238};
-
-int fill_line(char* buffer, int buffer_index);
-int fill_interior_line(char* buffer, int buffer_index, bool light_square);
-int fill_colored_interior_line(char* buffer, int buffer_index, bool light_square);
-int fill_rank(char* buffer, int buffer_index, bool light_square);
-int fill_board(char* buffer, int buffer_index);
-
-void set_square_bold_red(char* buffer, int ind);
-void set_square_bold_green(char* buffer, int ind);
-
-void draw_chessboard(char* buffer, chessboard* cb);
-
-int main(int argc, char* argv[])
-{
-  char* buffer = malloc(sizeof(char) * BUFFER_SIZE);
-  if (buffer)
-    {
-      for (int i = 0; i < BUFFER_SIZE; i++)
-	{
-	  buffer[i] = '\0';
-	}
-    }
-  else
-    {
-      printf("Failed to allocate buffer\n");
-      return -1;
-    }
-
-  chessboard cb = {};
-  chessboard_initialize_board(&cb);
-
-  int buffer_index = 0;
-  buffer_index = fill_board(buffer, buffer_index);
-
-  draw_chessboard(buffer, &cb);
-
-  printf("\n");
-  printf("%s\n", buffer);
-
-  free(buffer);
-
-  return 0;
-}
 
 int fill_line(char* buffer, int buffer_index)
 {
