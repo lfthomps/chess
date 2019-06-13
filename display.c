@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include "chessboard.h"
 
 // square_width does not include the outer boundaries of the board.
 //
@@ -24,25 +26,25 @@
 // (The +1 is to account for newlines.)
 int square_width = 7;
 int board_width = 58;
-const int BUFFER_SIZE = 2367; //Old value: 1535;
+const int BUFFER_SIZE = 2367; 
 
-typedef enum square {
-  A8 = 131,  B8 = 151,  C8 = 171,  D8 = 191,
-  E8 = 211,  F8 = 231,  G8 = 251,  H8 = 271,
-  A7 = 412,  B7 = 432,  C7 = 452,  D7 = 472,
-  E7 = 492,  F7 = 512,  G7 = 532,  H7 = 552,
-  A6 = 693,  B6 = 713,  C6 = 733,  D6 = 753,
-  E6 = 773,  F6 = 793,  G6 = 813,  H6 = 833,
-  A5 = 974,  B5 = 994,  C5 = 1014, D5 = 1034,
-  E5 = 1054, F5 = 1074, G5 = 1094, H5 = 1114,
-  A4 = 1255, B4 = 1275, C4 = 1295, D4 = 1315,
-  E4 = 1335, F4 = 1355, G4 = 1375, H4 = 1395,
-  A3 = 1536, B3 = 1556, C3 = 1576, D3 = 1596,
-  E3 = 1616, F3 = 1636, G3 = 1656, H3 = 1676,
-  A2 = 1817, B2 = 1837, C2 = 1857, D2 = 1877,
-  E2 = 1897, F2 = 1917, G2 = 1937, H2 = 1957,
-  A1 = 2098, B1 = 2118, C1 = 2138, D1 = 2158,
-  E1 = 2178, F1 = 2198, G1 = 2218, H1 = 2238,
+typedef enum display_square {
+  DISPLAY_A8 = 131,  DISPLAY_B8 = 151,  DISPLAY_C8 = 171,  DISPLAY_D8 = 191,
+  DISPLAY_E8 = 211,  DISPLAY_F8 = 231,  DISPLAY_G8 = 251,  DISPLAY_H8 = 271,
+  DISPLAY_A7 = 412,  DISPLAY_B7 = 432,  DISPLAY_C7 = 452,  DISPLAY_D7 = 472,
+  DISPLAY_E7 = 492,  DISPLAY_F7 = 512,  DISPLAY_G7 = 532,  DISPLAY_H7 = 552,
+  DISPLAY_A6 = 693,  DISPLAY_B6 = 713,  DISPLAY_C6 = 733,  DISPLAY_D6 = 753,
+  DISPLAY_E6 = 773,  DISPLAY_F6 = 793,  DISPLAY_G6 = 813,  DISPLAY_H6 = 833,
+  DISPLAY_A5 = 974,  DISPLAY_B5 = 994,  DISPLAY_C5 = 1014, DISPLAY_D5 = 1034,
+  DISPLAY_E5 = 1054, DISPLAY_F5 = 1074, DISPLAY_G5 = 1094, DISPLAY_H5 = 1114,
+  DISPLAY_A4 = 1255, DISPLAY_B4 = 1275, DISPLAY_C4 = 1295, DISPLAY_D4 = 1315,
+  DISPLAY_E4 = 1335, DISPLAY_F4 = 1355, DISPLAY_G4 = 1375, DISPLAY_H4 = 1395,
+  DISPLAY_A3 = 1536, DISPLAY_B3 = 1556, DISPLAY_C3 = 1576, DISPLAY_D3 = 1596,
+  DISPLAY_E3 = 1616, DISPLAY_F3 = 1636, DISPLAY_G3 = 1656, DISPLAY_H3 = 1676,
+  DISPLAY_A2 = 1817, DISPLAY_B2 = 1837, DISPLAY_C2 = 1857, DISPLAY_D2 = 1877,
+  DISPLAY_E2 = 1897, DISPLAY_F2 = 1917, DISPLAY_G2 = 1937, DISPLAY_H2 = 1957,
+  DISPLAY_A1 = 2098, DISPLAY_B1 = 2118, DISPLAY_C1 = 2138, DISPLAY_D1 = 2158,
+  DISPLAY_E1 = 2178, DISPLAY_F1 = 2198, DISPLAY_G1 = 2218, DISPLAY_H1 = 2238,
 } square;
 
 int fill_line(char* buffer, int buffer_index);
@@ -70,44 +72,47 @@ int main(int argc, char* argv[])
       return -1;
     }
 
+  chessboard cb = {};
+  chessboard_initialize_board(&cb);
+
   int buffer_index = 0;
   buffer_index = fill_board(buffer, buffer_index);
 
   // This is just temporary so that I can see what the board will
   // look like.  Eventually we will take a board representation
   // and use it to fill in the pieces for the display.  
-  buffer[A8] = 'R'; set_square_bold_red(buffer, A8);
-  buffer[B8] = 'N'; set_square_bold_red(buffer, B8);
-  buffer[C8] = 'B'; set_square_bold_red(buffer, C8);
-  buffer[D8] = 'Q'; set_square_bold_red(buffer, D8);
-  buffer[E8] = 'K'; set_square_bold_red(buffer, E8);
-  buffer[F8] = 'B'; set_square_bold_red(buffer, F8);
-  buffer[G8] = 'N'; set_square_bold_red(buffer, G8);
-  buffer[H8] = 'R'; set_square_bold_red(buffer, H8);
-  buffer[A7] = 'P'; set_square_bold_red(buffer, A7);
-  buffer[B7] = 'P'; set_square_bold_red(buffer, B7);
-  buffer[C7] = 'P'; set_square_bold_red(buffer, C7);
-  buffer[D7] = 'P'; set_square_bold_red(buffer, D7);
-  buffer[E7] = 'P'; set_square_bold_red(buffer, E7);
-  buffer[F7] = 'P'; set_square_bold_red(buffer, F7);
-  buffer[G7] = 'P'; set_square_bold_red(buffer, G7);
-  buffer[H7] = 'P'; set_square_bold_red(buffer, H7);
-  buffer[A2] = 'P'; set_square_bold_green(buffer, A2);
-  buffer[B2] = 'P'; set_square_bold_green(buffer, B2);
-  buffer[C2] = 'P'; set_square_bold_green(buffer, C2);
-  buffer[D2] = 'P'; set_square_bold_green(buffer, D2);
-  buffer[E2] = 'P'; set_square_bold_green(buffer, E2);
-  buffer[F2] = 'P'; set_square_bold_green(buffer, F2);
-  buffer[G2] = 'P'; set_square_bold_green(buffer, G2);
-  buffer[H2] = 'P'; set_square_bold_green(buffer, H2);
-  buffer[A1] = 'R'; set_square_bold_green(buffer, A1);
-  buffer[B1] = 'N'; set_square_bold_green(buffer, B1);
-  buffer[C1] = 'B'; set_square_bold_green(buffer, C1);
-  buffer[D1] = 'Q'; set_square_bold_green(buffer, D1);
-  buffer[E1] = 'K'; set_square_bold_green(buffer, E1);
-  buffer[F1] = 'B'; set_square_bold_green(buffer, F1);
-  buffer[G1] = 'N'; set_square_bold_green(buffer, G1);
-  buffer[H1] = 'R'; set_square_bold_green(buffer, H1);
+  buffer[DISPLAY_A8] = 'R'; set_square_bold_red(buffer, DISPLAY_A8);
+  buffer[DISPLAY_B8] = 'N'; set_square_bold_red(buffer, DISPLAY_B8);
+  buffer[DISPLAY_C8] = 'B'; set_square_bold_red(buffer, DISPLAY_C8);
+  buffer[DISPLAY_D8] = 'Q'; set_square_bold_red(buffer, DISPLAY_D8);
+  buffer[DISPLAY_E8] = 'K'; set_square_bold_red(buffer, DISPLAY_E8);
+  buffer[DISPLAY_F8] = 'B'; set_square_bold_red(buffer, DISPLAY_F8);
+  buffer[DISPLAY_G8] = 'N'; set_square_bold_red(buffer, DISPLAY_G8);
+  buffer[DISPLAY_H8] = 'R'; set_square_bold_red(buffer, DISPLAY_H8);
+  buffer[DISPLAY_A7] = 'P'; set_square_bold_red(buffer, DISPLAY_A7);
+  buffer[DISPLAY_B7] = 'P'; set_square_bold_red(buffer, DISPLAY_B7);
+  buffer[DISPLAY_C7] = 'P'; set_square_bold_red(buffer, DISPLAY_C7);
+  buffer[DISPLAY_D7] = 'P'; set_square_bold_red(buffer, DISPLAY_D7);
+  buffer[DISPLAY_E7] = 'P'; set_square_bold_red(buffer, DISPLAY_E7);
+  buffer[DISPLAY_F7] = 'P'; set_square_bold_red(buffer, DISPLAY_F7);
+  buffer[DISPLAY_G7] = 'P'; set_square_bold_red(buffer, DISPLAY_G7);
+  buffer[DISPLAY_H7] = 'P'; set_square_bold_red(buffer, DISPLAY_H7);
+  buffer[DISPLAY_A2] = 'P'; set_square_bold_green(buffer, DISPLAY_A2);
+  buffer[DISPLAY_B2] = 'P'; set_square_bold_green(buffer, DISPLAY_B2);
+  buffer[DISPLAY_C2] = 'P'; set_square_bold_green(buffer, DISPLAY_C2);
+  buffer[DISPLAY_D2] = 'P'; set_square_bold_green(buffer, DISPLAY_D2);
+  buffer[DISPLAY_E2] = 'P'; set_square_bold_green(buffer, DISPLAY_E2);
+  buffer[DISPLAY_F2] = 'P'; set_square_bold_green(buffer, DISPLAY_F2);
+  buffer[DISPLAY_G2] = 'P'; set_square_bold_green(buffer, DISPLAY_G2);
+  buffer[DISPLAY_H2] = 'P'; set_square_bold_green(buffer, DISPLAY_H2);
+  buffer[DISPLAY_A1] = 'R'; set_square_bold_green(buffer, DISPLAY_A1);
+  buffer[DISPLAY_B1] = 'N'; set_square_bold_green(buffer, DISPLAY_B1);
+  buffer[DISPLAY_C1] = 'B'; set_square_bold_green(buffer, DISPLAY_C1);
+  buffer[DISPLAY_D1] = 'Q'; set_square_bold_green(buffer, DISPLAY_D1);
+  buffer[DISPLAY_E1] = 'K'; set_square_bold_green(buffer, DISPLAY_E1);
+  buffer[DISPLAY_F1] = 'B'; set_square_bold_green(buffer, DISPLAY_F1);
+  buffer[DISPLAY_G1] = 'N'; set_square_bold_green(buffer, DISPLAY_G1);
+  buffer[DISPLAY_H1] = 'R'; set_square_bold_green(buffer, DISPLAY_H1);
 
   printf("\n");
   printf("%s\n", buffer);
@@ -263,4 +268,9 @@ void set_square_bold_green(char* buffer, square ind)
   buffer[ind-7] = '1';
   // Change to green escape code
   buffer[ind-2] = '2';
+}
+
+void draw_chessboard(char* buffer, chessboard* cb)
+{
+    // TODO:
 }
