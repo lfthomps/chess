@@ -1,6 +1,8 @@
 #ifndef CHESSBOARD_API_H
 #define CHESSBOARD_API_H
 
+#include <stdbool.h>
+
 typedef enum chessboard_square {
     A8, B8, C8, D8, E8, F8, G8, H8,
     A7, B7, C7, D7, E7, F7, G7, H7,
@@ -30,7 +32,6 @@ void chessboard_initialize_board(chessboard* cb);
 chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square);
 chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square);
 
-//Just for testing!  Do not keep in the api!
-void _move_unchecked(chessboard* cb, chessboard_square from, chessboard_square to);
+bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square to);
 
 #endif

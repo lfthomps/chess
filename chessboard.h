@@ -16,5 +16,7 @@ struct chessboard {
 
 void _set_square(chessboard* cb, chessboard_square square, chessboard_piecetype type, chessboard_color color);
 void _move_unchecked(chessboard* cb, chessboard_square from, chessboard_square to);
+bool _is_move_valid(chessboard* cb, chessboard_square from, chessboard_square to);
+bool _is_knight_move_valid(chessboard* cb, chessboard_square from, chessboard_square to);
 
 #endif
