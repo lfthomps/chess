@@ -27,9 +27,9 @@ int main(int argc, char* argv[])
   chessboard_initialize_board(cb);
 
   int buffer_index = 0;
-  buffer_index = fill_board(buffer, buffer_index);
+  buffer_index = display_fill_board(buffer, buffer_index);
 
-  draw_chessboard(buffer, cb);
+  display_draw_chessboard(buffer, cb);
 
   printf("\n");
   printf("%s\n", buffer);

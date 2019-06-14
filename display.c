@@ -37,7 +37,14 @@ const int display_squares[64] =
  1817, 1837, 1857, 1877, 1897, 1917, 1937, 1957,
  2098, 2118, 2138, 2158, 2178, 2198, 2218, 2238};
 
-int fill_line(char* buffer, int buffer_index)
+int _fill_line(char* buffer, int buffer_index);
+int _fill_interior_line(char* buffer, int buffer_index, bool light_square);
+int _fill_colored_interior_line(char* buffer, int buffer_index, bool light_square);
+int _fill_rank(char* buffer, int buffer_index, bool light_square);
+void _set_square_bold_red(char* buffer, int ind);
+void _set_square_bold_green(char* buffer, int ind);
+
+int _fill_line(char* buffer, int buffer_index)
 {
   int stop_index = buffer_index + board_width;
   for ( ; buffer_index < stop_index; buffer_index++)
@@ -49,7 +56,7 @@ int fill_line(char* buffer, int buffer_index)
   return buffer_index;
 }
 
-int fill_interior_line(char* buffer, int buffer_index, bool light_square)
+int _fill_interior_line(char* buffer, int buffer_index, bool light_square)
 {
   buffer[buffer_index++] = '#';
   for (int square = 0; square < 8; square++)
@@ -76,7 +83,7 @@ int fill_interior_line(char* buffer, int buffer_index, bool light_square)
   return buffer_index;
 }
 
-int fill_colored_interior_line(char* buffer, int buffer_index, bool light_square)
+int _fill_colored_interior_line(char* buffer, int buffer_index, bool light_square)
 {
   buffer[buffer_index++] = '#';
   for (int square = 0; square < 8; square++)
@@ -146,30 +153,30 @@ int fill_colored_interior_line(char* buffer, int buffer_index, bool light_square
   return buffer_index;
 }
 
-int fill_rank(char* buffer, int buffer_index, bool light_square)
+int _fill_rank(char* buffer, int buffer_index, bool light_square)
 {
-  buffer_index = fill_interior_line(buffer, buffer_index, light_square);
-  buffer_index = fill_colored_interior_line(buffer, buffer_index, light_square);
-  buffer_index = fill_interior_line(buffer, buffer_index, light_square);
+  buffer_index = _fill_interior_line(buffer, buffer_index, light_square);
+  buffer_index = _fill_colored_interior_line(buffer, buffer_index, light_square);
+  buffer_index = _fill_interior_line(buffer, buffer_index, light_square);
 
   return buffer_index;
 }
 
-int fill_board(char* buffer, int buffer_index)
+int display_fill_board(char* buffer, int buffer_index)
 {
   bool light_square = true;
-  buffer_index = fill_line(buffer, buffer_index);
+  buffer_index = _fill_line(buffer, buffer_index);
   for (int rank = 0; rank < 8; rank++)
     {
-      buffer_index = fill_rank(buffer, buffer_index, light_square);
+      buffer_index = _fill_rank(buffer, buffer_index, light_square);
       light_square = !(light_square);
     }
-  buffer_index = fill_line(buffer, buffer_index);
+  buffer_index = _fill_line(buffer, buffer_index);
 
   return buffer_index;
 }
 
-void set_square_bold_red(char* buffer, int ind)
+void _set_square_bold_red(char* buffer, int ind)
 {
   // Change to bold escape code
   buffer[ind-7] = '1';
@@ -177,7 +184,7 @@ void set_square_bold_red(char* buffer, int ind)
   buffer[ind-2] = '1';
 }
 
-void set_square_bold_green(char* buffer, int ind)
+void _set_square_bold_green(char* buffer, int ind)
 {
   // Change to bold escape code
   buffer[ind-7] = '1';
@@ -185,7 +192,7 @@ void set_square_bold_green(char* buffer, int ind)
   buffer[ind-2] = '2';
 }
 
-void draw_chessboard(char* buffer, chessboard* cb)
+void display_draw_chessboard(char* buffer, chessboard* cb)
 {
     for (enum chessboard_square square = A8; square < CHESSBOARD_MAX_SQUARE; square++)
     {
@@ -196,11 +203,11 @@ void draw_chessboard(char* buffer, chessboard* cb)
 	{
 	    if (color == WHITE)
 	    {
-		set_square_bold_green(buffer, ind);
+		_set_square_bold_green(buffer, ind);
 	    }
 	    else if (color == BLACK)
 	    {
-		set_square_bold_red(buffer, ind);
+		_set_square_bold_red(buffer, ind);
 	    }
 	}
 	switch (type)
