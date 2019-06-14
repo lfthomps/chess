@@ -1,9 +1,42 @@
 #include <stdint.h>
+#include <stdlib.h>
+#include "chessboard_api.h"
 #include "chessboard.h"
+#include <assert.h>
 
-void _set_square(chessboard* cb, enum chessboard_square square, enum chessboard_piecetype type, enum chessboard_color color)
+#include <stdio.h> // Just for debugging
+
+chessboard* chessboard_allocate()
 {
-    (cb->_board)[square] = (struct chessboard_piece){._type=type, ._color=color};
+    chessboard* cb = (chessboard *)malloc(sizeof(chessboard));
+    if (cb)
+    {
+	cb->_board = (struct chessboard_piece *)malloc(sizeof(struct chessboard_piece) * 64);
+	if (cb->_board)
+	{
+	    cb->_to_move = WHITE;
+	}
+	else
+	{
+	    free(cb);
+	    printf("DEBUG: Failed to allocate cb._board\n");
+	    return 0;
+	}
+    }
+    else
+    {
+	printf("DEBUG: Failed to allocate cb\n");
+    }
+    return cb;    
+}
+
+void chessboard_free(chessboard* cb)
+{
+    assert(cb && "Tried to free null pointer to chessboard");
+    assert(cb->_board && "Tried to free chessboard with null _board");
+
+    free(cb->_board);
+    free(cb);
 }
 
 void chessboard_initialize_board(chessboard* cb)
@@ -38,12 +71,17 @@ void chessboard_initialize_board(chessboard* cb)
     _set_square(cb, H1, ROOK, WHITE);
 }
 
-enum chessboard_piecetype chessboard_get_piecetype(chessboard* cb, enum chessboard_square square)
+chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square)
 {
     return cb->_board[square]._type;
 }
 
-enum chessboard_color chessboard_get_color(chessboard* cb, enum chessboard_square square)
+chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square)
 {
     return cb->_board[square]._color;
+}
+
+void _set_square(chessboard* cb, chessboard_square square, chessboard_piecetype type, chessboard_color color)
+{
+    (cb->_board)[square] = (struct chessboard_piece){._type=type, ._color=color};
 }

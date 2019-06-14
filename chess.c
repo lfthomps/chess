@@ -14,21 +14,27 @@ int main(int argc, char* argv[])
     }
   else
     {
-      printf("Failed to allocate buffer\n");
+      printf("DEBUG: Failed to allocate buffer\n");
       return -1;
     }
 
-  chessboard cb = {};
-  chessboard_initialize_board(&cb);
+  chessboard* cb = chessboard_allocate();
+  if (!cb)
+  {
+      printf("DEBUG: Failed to allocate board\n");
+      return -2;
+  }
+  chessboard_initialize_board(cb);
 
   int buffer_index = 0;
   buffer_index = fill_board(buffer, buffer_index);
 
-  draw_chessboard(buffer, &cb);
+  draw_chessboard(buffer, cb);
 
   printf("\n");
   printf("%s\n", buffer);
 
+  chessboard_free(cb);
   free(buffer);
 
   return 0;
