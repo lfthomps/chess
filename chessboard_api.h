@@ -30,4 +30,7 @@ void chessboard_initialize_board(chessboard* cb);
 chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square);
 chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square);
 
+//Just for testing!  Do not keep in the api!
+void _move_unchecked(chessboard* cb, chessboard_square from, chessboard_square to);
+
 #endif

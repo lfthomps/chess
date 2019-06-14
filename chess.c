@@ -34,6 +34,10 @@ int main(int argc, char* argv[])
   printf("\n");
   printf("%s\n", buffer);
 
+  _move_unchecked(cb, E2, E4);
+  display_draw_chessboard(buffer, cb);
+  printf("\n%s\n", buffer);
+
   chessboard_free(cb);
   free(buffer);
 

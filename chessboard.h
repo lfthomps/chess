@@ -14,6 +14,7 @@ struct chessboard {
     struct chessboard_piece* _board;
 };
 
-void _set_square(chessboard* cb, enum chessboard_square square, enum chessboard_piecetype type, enum chessboard_color color);
+void _set_square(chessboard* cb, chessboard_square square, chessboard_piecetype type, chessboard_color color);
+void _move_unchecked(chessboard* cb, chessboard_square from, chessboard_square to);
 
 #endif

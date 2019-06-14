@@ -192,14 +192,31 @@ void _set_square_bold_green(char* buffer, int ind)
   buffer[ind-2] = '2';
 }
 
+void _set_square_normal(char* buffer, int ind)
+{
+    //Change to non-bold escape code
+    buffer[ind-7] = '0';
+    //Change to white escape code
+    buffer[ind-2] = '9';
+}
+
 void display_draw_chessboard(char* buffer, chessboard* cb)
 {
+    bool light_square = true;
     for (enum chessboard_square square = A8; square < CHESSBOARD_MAX_SQUARE; square++)
     {
+		// Square color alternates except for the start of each rank
+	if (square % 8) light_square = !light_square;
+
 	enum chessboard_color color = chessboard_get_color(cb, square);
 	enum chessboard_piecetype type = chessboard_get_piecetype(cb, square);
 	int ind = display_squares[square];
-	if (type != EMPTY)
+	if (type == EMPTY)
+	{
+	    buffer[ind] = light_square ? '/' : ' ';
+	    _set_square_normal(buffer, ind);
+	}
+	else
 	{
 	    if (color == WHITE)
 	    {
@@ -210,6 +227,7 @@ void display_draw_chessboard(char* buffer, chessboard* cb)
 		_set_square_bold_red(buffer, ind);
 	    }
 	}
+	
 	switch (type)
 	{
 	case PAWN:

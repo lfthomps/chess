@@ -85,3 +85,9 @@ void _set_square(chessboard* cb, chessboard_square square, chessboard_piecetype 
 {
     (cb->_board)[square] = (struct chessboard_piece){._type=type, ._color=color};
 }
+
+void _move_unchecked(chessboard* cb, chessboard_square from, chessboard_square to)
+{
+    cb->_board[to] = cb->_board[from];
+    cb->_board[from] = (struct chessboard_piece){._type=EMPTY, ._color=WHITE};
+}
