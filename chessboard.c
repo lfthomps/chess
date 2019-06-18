@@ -1,7 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
 #include "chessboard_api.h"
 #include "chessboard.h"
+#include <stdint.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include <stdio.h> // Just for debugging
@@ -81,6 +81,11 @@ chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square)
     return cb->_board[square]._color;
 }
 
+chessboard_color chessboard_get_current_player(chessboard *cb)
+{
+    return cb->_to_move;
+}
+
 bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square to)
 {
     bool valid = _is_move_valid(cb, from, to);
@@ -126,7 +131,6 @@ bool _is_move_valid(chessboard* cb, chessboard_square from, chessboard_square to
 
 bool _is_knight_move_valid(chessboard* cb, chessboard_square from, chessboard_square to)
 {
-    printf("Validating knight move from %d to %d\n");
     assert(cb->_board[from]._type == KNIGHT);
     assert(cb->_board[from]._color == cb->_to_move);
     assert(cb->_board[to]._color != cb->_to_move);
