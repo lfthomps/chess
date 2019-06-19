@@ -50,6 +50,7 @@ const uint32_t internal_squares[CHESSBOARD_MAX_SQUARE] =
  96, 97, 98, 99, 100, 101, 102, 103,
  112, 113, 114, 115, 116, 117, 118, 119};
 
+#ifndef NDEBUG
 void DEBUG_print_piecelist(chessboard* cb)
 {
     printf("Printing Pieces: \n");
@@ -125,6 +126,81 @@ void DEBUG_print_piece(struct _piece* piece)
     printf("\tAddress: %p\n", piece);
 }
 
+void DEBUG_validate_board(chessboard* cb)
+{
+    // The asserts in here are double checked so that I can
+    // print more useful debug information.  At some point
+    // I should write a nicer assert macro to handle this for me.
+    bool valid = true;
+
+    for (uint32_t square = 0; square < MAX_INDEX; square++)
+    {
+	if (cb->board[square])
+	{
+	    // WARNING: This is meant to check if cb->board[square]
+	    // points to an element of cb->piecelist.  Technically,
+	    // the behavior of these pointer comparisons is
+	    // unspecified if cb->board[square] points outside the
+	    // array.  I'm only running the debug code on my computer
+	    // though, and it seems to work fine here.  As I understand
+	    // it, this works as expected on the vast majority of
+	    // systems.
+	    valid = (cb->board[square] >= &cb->piecelist[0][0]) &&
+		(cb->board[square] <= &cb->piecelist[1][MAX_INDEX]);
+	    if (!valid) printf("Square %d has invalid address %p\n", square, cb->board[square]);
+	    assert(valid);
+	    
+	    struct _piece piece = *(cb->board[square]);
+	    valid = piece.square == square;
+	    if (!valid) printf("board[%d] points to piece with square %d\n", square, piece.square);
+	    assert(valid);
+	    
+	    // WARNING: This relies on the fact that types are ordered
+	    // such that valid pieces are between EMPTY and
+	    // CHESSBOARD_MAX_PIECETYPE.  If that enum is reordered,
+	    // this will have to change.  
+	    valid = (piece.type > EMPTY) &&
+		(piece.type < CHESSBOARD_MAX_PIECETYPE);
+	    if (!valid) printf("Square %d has invalid piecetype %d\n", square, piece.type);
+	    assert(valid);
+	}
+    }
+    for (chessboard_color color = WHITE; color < CHESSBOARD_MAX_COLOR; color++)
+    {
+	for (int i = 0; i < MAX_PIECES; i++)
+	{
+	    struct _piece piece = cb->piecelist[color][i];
+	    if (piece.square ==	MAX_INDEX)
+	    {
+		valid = piece.type == EMPTY;
+		if (!valid) printf("Piecelist[%d][%d] is empty but has non-empty type %d\n", color, i, piece.type);
+		DEBUG_print_piece(&piece);
+		assert(valid);
+
+		valid = piece.color == CHESSBOARD_MAX_COLOR;
+		if (!valid) printf("Piecelist[%d][%d] is empty but has color %d (should be CHESSBOARD_MAX_COLOR)\n", color, i, piece.color);
+		assert(valid);
+	    }
+	    else
+	    {
+		valid = cb->board[piece.square];
+		if (!valid) printf("Piecelist[%d][%d] has square %d, but cb->board[%d] is null\n", color, i, piece.square, piece.square);
+		assert(valid);
+
+		valid = cb->board[piece.square] == &(cb->piecelist[color][i]);
+		if (!valid) printf("Piecelist[%d][%d] has square %d, but cb->board[%d] points to %p (should be %p)\n", color, i, piece.square, piece.square, cb->board[piece.square], &(cb->piecelist[color][i]));
+		assert(valid);
+	    }
+	}
+    }
+}
+#else // #ifndef NDEBUG
+void DEBUG_print_piecelist(chessboard* cb) {}
+void DEBUG_print_board(chessboard* cb) {}
+void DEBUG_print_piece(struct _piece* piece) {}
+void DEBUG_validate_board(chessboard* cb) {}
+#endif // #ifndef NDEBUG
+
 chessboard* chessboard_allocate()
 {
     chessboard* cb = (chessboard *)malloc(sizeof(chessboard));
@@ -189,6 +265,8 @@ void chessboard_initialize_board(chessboard* cb)
     _set_square(cb, _get_internal_square(F1), BISHOP, WHITE);
     _set_square(cb, _get_internal_square(G1), KNIGHT, WHITE);
     _set_square(cb, _get_internal_square(H1), ROOK, WHITE);
+
+    DEBUG_validate_board(cb);
 }
 
 chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square)
@@ -256,7 +334,15 @@ void _clear_square(chessboard* cb, uint32_t square)
 			    .type=EMPTY,
 			    .square=MAX_INDEX};
     }
-    cb->board[square] = 0;
+    cb->board[square] = NULL;
+}
+
+void _move_unchecked(chessboard* cb, uint32_t from, uint32_t to)
+{
+    _clear_square(cb, to);
+    cb->board[to] = cb->board[from];
+    cb->board[to]->square = to;
+    cb->board[from] = NULL;
 }
 
 bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square to)
@@ -265,15 +351,8 @@ bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square t
     uint32_t to_index = _get_internal_square(to);
     bool valid = _is_move_valid(cb, from_index, to_index);
     if (valid) _move_unchecked(cb, from_index, to_index);
+    DEBUG_validate_board(cb);
     return valid;
-}
-
-
-void _move_unchecked(chessboard* cb, uint32_t from, uint32_t to)
-{
-    _clear_square(cb, to);
-    cb->board[to] = cb->board[from];
-    cb->board[from] = (struct _piece *)0;
 }
 
 bool _is_move_valid(chessboard* cb, uint32_t from, uint32_t to)

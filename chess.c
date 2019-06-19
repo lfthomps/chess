@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
   assert(!chessboard_move(cb, B1, D4));
   assert(!chessboard_move(cb, B1, D2));
   assert(chessboard_move(cb, B1, C3));
+  display_draw_chessboard(buffer, cb);
   assert(!chessboard_move(cb, C3, H4));
   assert(chessboard_move(cb, C3, A4));
   assert(!chessboard_move(cb, A4, G5));

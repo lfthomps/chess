@@ -16,6 +16,7 @@ struct chessboard {
 void DEBUG_print_piecelist(chessboard* cb);
 void DEBUG_print_board(chessboard* cb);
 void DEBUG_print_piece(struct _piece* piece);
+void DEBUG_validate_board(chessboard* cb);
 
 uint32_t _get_internal_square(chessboard_square square);
 bool _is_square_legal(uint32_t square);
