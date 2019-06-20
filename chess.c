@@ -35,7 +35,8 @@ int main(int argc, char* argv[])
   printf("\n");
   printf("%s\n", buffer);
 
-  assert(!chessboard_move(cb, E2, E4));
+  assert(chessboard_move(cb, E2, E4));
+  display_draw_chessboard(buffer, cb);
   assert(!chessboard_move(cb, B1, D4));
   assert(!chessboard_move(cb, B1, D2));
   assert(chessboard_move(cb, B1, C3));
