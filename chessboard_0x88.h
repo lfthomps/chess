@@ -18,17 +18,11 @@ void DEBUG_print_board(chessboard* cb);
 void DEBUG_print_piece(struct _piece* piece);
 void DEBUG_validate_board(chessboard* cb);
 
+chessboard_color _chessboard_get_color(chessboard* cb, uint32_t square);
+chessboard_piecetype _chessboard_get_piecetype(chessboard* cb, uint32_t square);
+
 uint32_t _get_internal_square(chessboard_square square);
 bool _is_square_legal(uint32_t square);
 
 int _set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color);
 void _clear_square(chessboard* cb, uint32_t square);
-
-void _move_unchecked(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_knight_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_king_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_bishop_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_rook_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_queen_move_valid(chessboard* cb, uint32_t from, uint32_t to);
-bool _is_pawn_move_valid(chessboard* cb, uint32_t from, uint32_t to);
