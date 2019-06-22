@@ -5,7 +5,7 @@
 
 /*
 Chessboard API
-------------------------------------------------------------------------
+-----------------------------------------------------------------------
 We will ultimately use several different representations of chessboards,
 including at least 0x88 boards and bitboards.  It is obviously 
 impractical for users (such as displays) to keep track of these internal
@@ -27,6 +27,10 @@ type inputs.  It is up to the caller to make sure that
 0 <= square < CHESSBOARD_MAX_SQUARE,
 0 <= color < CHESSBOARD_MAX_COLOR, 
 0 <= type < CHESSBOARD_MAX_TYPE
+
+The CHESSBOARD_MAX values are mainly intended to be used for loops,
+but they have also proved useful internally to represent invalid or
+placeholder values.  I may also use them as error codes at some point. 
  */
 
 typedef struct chessboard chessboard;
@@ -79,9 +83,13 @@ type and color, respectively, of the piece on square "square".
 
 A square without a piece always has piecetype EMPTY, but its color
 is implementation defined.
+
+chessboard_switch_current_player flips the current player from WHITE 
+to BLACK or vice versa. 
  */
 chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square);
 chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square);
+void chessboard_switch_current_player(chessboard *cb);
 
 /*
 chessboard_move checks if it is legal to move a piece from "from"

@@ -35,7 +35,17 @@ empty and illegal squares) will contain a null pointer.  The pieces
 will be organized in a 2x16 array, where one row holds the white pieces
 and the other row holds the black pieces.  This will make it easy to
 loop through pieces when necessary.
- */
+ 
+TODO: All of the chessboard_api functions that take a chessboard_square
+as an argument have a corresponding function with a leading underscore
+that takes an index from the 0x88 board representation instead.  This 
+is so that internal functions can take advantage of these functions
+without wasting time translating to and from chessboard_squares. 
+Unfortunately, there is enough code here that it seemed prudent to 
+split it into multiple source files, so the leading underscore naming
+convention is no longer appropriate.  These should be renamed at some
+point.  
+*/
 
 const int MAX_INDEX = 128;
 const int MAX_PIECES = 16;
@@ -301,6 +311,14 @@ chessboard_color _chessboard_get_color(chessboard* cb, uint32_t square)
 chessboard_color chessboard_get_current_player(chessboard *cb)
 {
     return cb->to_move;
+}
+
+void chessboard_switch_current_player(chessboard *cb)
+{
+    // WARNING: This relies on the fact that WHITE and BLACK are 0 and
+    // 1.  If other colors are used for some reason (maybe to indicate
+    // an error) then this will cause problems.  
+    cb->to_move = !(cb->to_move);
 }
 
 uint32_t _get_internal_square(chessboard_square square)
