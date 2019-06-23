@@ -47,9 +47,6 @@ convention is no longer appropriate.  These should be renamed at some
 point.  
 */
 
-const int MAX_INDEX = 128;
-const int MAX_PIECES = 16;
-
 const uint32_t internal_squares[CHESSBOARD_MAX_SQUARE] =
 {0, 1, 2, 3, 4, 5, 6, 7,
  16, 17, 18, 19, 20, 21, 22, 23,
@@ -66,7 +63,7 @@ void DEBUG_print_piecelist(chessboard* cb)
     printf("Printing Pieces: \n");
     for (int i = 0; i < 2; i++)
     {
-	for (int j = 0; j < MAX_PIECES; j++)
+	for (int j = 0; j < MAX_PIECES_0X88; j++)
 	{
 	    struct _piece piece = cb->piecelist[i][j];
 	    printf("Piece %d:\n", j);
@@ -77,7 +74,7 @@ void DEBUG_print_piecelist(chessboard* cb)
 
 void DEBUG_print_board(chessboard* cb)
 {
-    for (uint32_t i = 0; i < MAX_INDEX; i++)
+    for (uint32_t i = 0; i < MAX_INDEX_0X88; i++)
     {
 	if (cb->board[i])
 	{
@@ -143,7 +140,7 @@ void DEBUG_validate_board(chessboard* cb)
     // I should write a nicer assert macro to handle this for me.
     bool valid = true;
 
-    for (uint32_t square = 0; square < MAX_INDEX; square++)
+    for (uint32_t square = 0; square < MAX_INDEX_0X88; square++)
     {
 	if (cb->board[square])
 	{
@@ -156,7 +153,7 @@ void DEBUG_validate_board(chessboard* cb)
 	    // it, this works as expected on the vast majority of
 	    // systems.
 	    valid = (cb->board[square] >= &cb->piecelist[0][0]) &&
-		(cb->board[square] <= &cb->piecelist[1][MAX_INDEX]);
+		(cb->board[square] < &cb->piecelist[1][MAX_INDEX_0X88]);
 	    if (!valid) printf("Square %d has invalid address %p\n", square, cb->board[square]);
 	    assert(valid);
 	    
@@ -177,10 +174,10 @@ void DEBUG_validate_board(chessboard* cb)
     }
     for (chessboard_color color = WHITE; color < CHESSBOARD_MAX_COLOR; color++)
     {
-	for (int i = 0; i < MAX_PIECES; i++)
+	for (int i = 0; i < MAX_PIECES_0X88; i++)
 	{
 	    struct _piece piece = cb->piecelist[color][i];
-	    if (piece.square ==	MAX_INDEX)
+	    if (piece.square ==	MAX_INDEX_0X88)
 	    {
 		valid = piece.type == EMPTY;
 		if (!valid)
@@ -223,18 +220,18 @@ chessboard* chessboard_allocate()
     chessboard* cb = (chessboard *)malloc(sizeof(chessboard));
     if (cb)
     {
-	for (int index = 0; index < MAX_INDEX; index++)
+	for (int index = 0; index < MAX_INDEX_0X88; index++)
 	{
 	    cb->board[index] = 0;
 	}
 	for (int color = WHITE; color < CHESSBOARD_MAX_COLOR; color++)
 	{
-	    for (int piece = 0; piece < MAX_PIECES; piece++)
+	    for (int piece = 0; piece < MAX_PIECES_0X88; piece++)
 	    {
 		cb->piecelist[color][piece] =
 		    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
 				    .type=EMPTY,
-				    .square=MAX_INDEX};
+				    .square=MAX_INDEX_0X88};
 	    }
 	}
 	cb->to_move = CHESSBOARD_MAX_COLOR;
@@ -255,6 +252,7 @@ void chessboard_free(chessboard* cb)
 void chessboard_initialize_board(chessboard* cb)
 {
     cb->to_move = WHITE;
+    cb->castle = (struct _castle_rights){true, true, true, true};
     
     for (enum chessboard_square square = A7; square < A6; square++)
     {
@@ -336,8 +334,8 @@ bool _is_square_legal(uint32_t square)
 int _set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color)
 {
     int i = 0;
-    while ((i < MAX_PIECES) && (cb->piecelist[color][i].type != EMPTY)) i++;
-    if (i >= MAX_PIECES)
+    while ((i < MAX_PIECES_0X88) && (cb->piecelist[color][i].type != EMPTY)) i++;
+    if (i >= MAX_PIECES_0X88)
     {
 	printf("DEBUG: Added more than 16 pieces to board\n");
 	return -1;
@@ -357,7 +355,7 @@ void _clear_square(chessboard* cb, uint32_t square)
 	*(cb->board[square]) =
 	    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
 			    .type=EMPTY,
-			    .square=MAX_INDEX};
+			    .square=MAX_INDEX_0X88};
     }
     cb->board[square] = NULL;
 }
