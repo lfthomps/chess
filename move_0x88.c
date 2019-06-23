@@ -9,31 +9,62 @@ bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square t
     struct _move move =
 	(struct _move){.from=_get_internal_square(from),
 		       .to=_get_internal_square(to)};
-    bool valid = _is_move_valid(cb, move);
-    if (valid) _move_unchecked(cb, move);
+    bool valid = _is_move_valid(cb, &move);
+    if (valid) _move_unchecked(cb, &move);
+    if (move.is_castle)
+    {
+	struct _move rook_move = {};
+	switch (to)
+	{
+	case G1:
+	case G8:
+	    assert(chessboard_get_piecetype(cb, to+1) == ROOK && "Invalid short castle move attempted");
+	    rook_move = (struct _move){.from=move.to+1,
+				       .to=move.to-1};
+	    _move_unchecked(cb, &rook_move);
+	    break;
+	case C1:
+	case C8:
+	    assert(chessboard_get_piecetype(cb, to-2) == ROOK && "Invalid long castle move attempted");
+	    rook_move = (struct _move){.from=move.to-2,
+				       .to=move.to+1};
+	    _move_unchecked(cb, &rook_move);
+	    break;
+	default:
+	    assert(false && "Invalid castle move attempted");
+	    break;
+	}
+    }
+
+    if (move.is_king) cb->castle = (struct _castle_rights){false};
+    if (move.is_white_kings_rook) cb->castle.white_short = false;
+    if (move.is_white_queens_rook) cb->castle.white_long = false;
+    if (move.is_black_kings_rook) cb->castle.black_short = false;
+    if (move.is_black_queens_rook) cb->castle.black_long = false;
+
     DEBUG_validate_board(cb);
     return valid;
 }
 
-void _move_unchecked(chessboard* cb, struct _move move)
+void _move_unchecked(chessboard* cb, struct _move* move)
 {
-    _clear_square(cb, move.to);
-    cb->board[move.to] = cb->board[move.from];
-    cb->board[move.to]->square = move.to;
-    cb->board[move.from] = NULL;
+    _clear_square(cb, move->to);
+    cb->board[move->to] = cb->board[move->from];
+    cb->board[move->to]->square = move->to;
+    cb->board[move->from] = NULL;
 }
 
-bool _is_move_valid(chessboard* cb, struct _move move)
+bool _is_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
     
     bool valid = false;
-    bool from_color_valid = (_chessboard_get_color(cb, move.from) == cb->to_move);
-    bool to_color_valid = (_chessboard_get_color(cb, move.to) != cb->to_move);
+    bool from_color_valid = (_chessboard_get_color(cb, move->from) == cb->to_move);
+    bool to_color_valid = (_chessboard_get_color(cb, move->to) != cb->to_move);
     if (from_color_valid && to_color_valid)
     {
-	switch (_chessboard_get_piecetype(cb, move.from))
+	switch (_chessboard_get_piecetype(cb, move->from))
 	{
 	case KNIGHT:
 	    valid = _is_knight_move_valid(cb, move);
@@ -61,16 +92,16 @@ bool _is_move_valid(chessboard* cb, struct _move move)
     return valid;
 }
 
-bool _is_knight_move_valid(chessboard* cb, struct _move move)
+bool _is_knight_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_chessboard_get_piecetype(cb, move.from) == KNIGHT);
-    assert(_chessboard_get_color(cb, move.from) == cb->to_move);
-    assert(_chessboard_get_color(cb, move.to) != cb->to_move);
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_chessboard_get_piecetype(cb, move->from) == KNIGHT);
+    assert(_chessboard_get_color(cb, move->from) == cb->to_move);
+    assert(_chessboard_get_color(cb, move->to) != cb->to_move);
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
 
     bool valid = false;
-    int32_t diff = move.to - move.from;
+    int32_t diff = move->to - move->from;
     switch (diff)
     {
     case 33:
@@ -89,16 +120,16 @@ bool _is_knight_move_valid(chessboard* cb, struct _move move)
     return valid;
 }
 
-bool _is_king_move_valid(chessboard* cb, struct _move move)
+bool _is_king_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_chessboard_get_piecetype(cb, move.from) == KING);
-    assert(_chessboard_get_color(cb, move.from) == cb->to_move);
-    assert(_chessboard_get_color(cb, move.to) != cb->to_move);
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_chessboard_get_piecetype(cb, move->from) == KING);
+    assert(_chessboard_get_color(cb, move->from) == cb->to_move);
+    assert(_chessboard_get_color(cb, move->to) != cb->to_move);
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
 
     bool valid = false;
-    int32_t diff = move.to - move.from;
+    int32_t diff = move->to - move->from;
     switch (diff)
     {
     case 1:
@@ -113,114 +144,116 @@ bool _is_king_move_valid(chessboard* cb, struct _move move)
 	break;
     case 2:
     case -2:
-	// Castling not finished
-	//valid = _is_castle_move_valid(cb, move);
+	valid = _is_castle_move_valid(cb, move);
 	break;
     default:
 	break;
     }
+
+    if (valid) move->is_king = true;
     return valid;
 }
 
-bool _is_castle_move_valid(chessboard* cb, struct _move move)
+bool _is_castle_move_valid(chessboard* cb, struct _move* move)
 {
     bool valid = false;
-    int32_t diff = move.to - move.from;
-    switch (_chessboard_get_color(cb, move.from))
+    int32_t diff = move->to - move->from;
+    switch (_chessboard_get_color(cb, move->from))
     {
     case WHITE:
 	if (diff == 2)
 	{
 	    valid = (cb->castle.white_short &&
-		     move.from == _get_internal_square(E1) &&
-		     _chessboard_get_piecetype(cb, move.to) == EMPTY &&
-		     _chessboard_get_piecetype(cb, move.from+1) == EMPTY &&
-		     !_is_square_attacked(cb, move.from, BLACK) &&
-		     !_is_square_attacked(cb, move.from+1, BLACK) &&
-		     !_is_square_attacked(cb, move.to, BLACK));
+		     move->from == _get_internal_square(E1) &&
+		     _chessboard_get_piecetype(cb, move->to) == EMPTY &&
+		     _chessboard_get_piecetype(cb, move->from+1) == EMPTY &&
+		     !_is_square_attacked(cb, move->from, BLACK) &&
+		     !_is_square_attacked(cb, move->from+1, BLACK) &&
+		     !_is_square_attacked(cb, move->to, BLACK));
 	}
 	else
 	{
 	    assert(diff == -2 && "_is_castle_move_valid was passed a king move that wasn't 2 squares right or left");
 	    valid = (cb->castle.white_long &&
-		     move.from == _get_internal_square(E1) &&
-		     _chessboard_get_piecetype(cb, move.to) == EMPTY &&
-		     _chessboard_get_piecetype(cb, move.from-1) == EMPTY &&
-		     !_is_square_attacked(cb, move.from, BLACK) &&
-		     !_is_square_attacked(cb, move.from-1, BLACK) &&
-		     !_is_square_attacked(cb, move.to, BLACK));
+		     move->from == _get_internal_square(E1) &&
+		     _chessboard_get_piecetype(cb, move->to) == EMPTY &&
+		     _chessboard_get_piecetype(cb, move->from-1) == EMPTY &&
+		     !_is_square_attacked(cb, move->from, BLACK) &&
+		     !_is_square_attacked(cb, move->from-1, BLACK) &&
+		     !_is_square_attacked(cb, move->to, BLACK));
 	}
 	break;
     case BLACK:
 	if (diff == 2)
 	{
 	    valid = (cb->castle.black_short &&
-		     move.from == _get_internal_square(E8) &&
-		     _chessboard_get_piecetype(cb, move.to) == EMPTY &&
-		     _chessboard_get_piecetype(cb, move.from+1) == EMPTY &&
-		     !_is_square_attacked(cb, move.from, WHITE) &&
-		     !_is_square_attacked(cb, move.from+1, WHITE) &&
-		     !_is_square_attacked(cb, move.to, WHITE));
+		     move->from == _get_internal_square(E8) &&
+		     _chessboard_get_piecetype(cb, move->to) == EMPTY &&
+		     _chessboard_get_piecetype(cb, move->from+1) == EMPTY &&
+		     !_is_square_attacked(cb, move->from, WHITE) &&
+		     !_is_square_attacked(cb, move->from+1, WHITE) &&
+		     !_is_square_attacked(cb, move->to, WHITE));
 	}
 	else
 	{
 	    assert(diff == -2 && "_is_castle_move_valid was passed a king move that wasn't 2 squares right or left");
 	    valid = (cb->castle.white_long &&
-		     move.from == _get_internal_square(E8) &&
-		     _chessboard_get_piecetype(cb, move.to) == EMPTY &&
-		     _chessboard_get_piecetype(cb, move.from-1) == EMPTY &&
-		     !_is_square_attacked(cb, move.from, WHITE) &&
-		     !_is_square_attacked(cb, move.from-1, WHITE) &&
-		     !_is_square_attacked(cb, move.to, WHITE));
+		     move->from == _get_internal_square(E8) &&
+		     _chessboard_get_piecetype(cb, move->to) == EMPTY &&
+		     _chessboard_get_piecetype(cb, move->from-1) == EMPTY &&
+		     !_is_square_attacked(cb, move->from, WHITE) &&
+		     !_is_square_attacked(cb, move->from-1, WHITE) &&
+		     !_is_square_attacked(cb, move->to, WHITE));
 	}
 	break;
     default:
 	assert(false && "Invalid piece color");
 	break;
     }
-    
+
+    move->is_castle = valid;
     return valid;
 }
 
-bool _is_bishop_move_valid(chessboard* cb, struct _move move)
+bool _is_bishop_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_chessboard_get_piecetype(cb, move.from) == BISHOP || _chessboard_get_piecetype(cb, move.from) == QUEEN);
-    assert(_chessboard_get_color(cb, move.from) == cb->to_move);
-    assert(_chessboard_get_color(cb, move.to) != cb->to_move);
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_chessboard_get_piecetype(cb, move->from) == BISHOP || _chessboard_get_piecetype(cb, move->from) == QUEEN);
+    assert(_chessboard_get_color(cb, move->from) == cb->to_move);
+    assert(_chessboard_get_color(cb, move->to) != cb->to_move);
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
 
     bool valid = false;
-    int32_t diff = move.to - move.from;
+    int32_t diff = move->to - move->from;
     int32_t bishop_directions[2] = {17, 15};
     for (int i = 0; i < 2; i++)
     {
-	int32_t direction = (move.to > move.from) ? bishop_directions[i] : -bishop_directions[i];
+	int32_t direction = (move->to > move->from) ? bishop_directions[i] : -bishop_directions[i];
 	if (diff % direction == 0)
 	{
-	    uint32_t test = move.from;
-	    while (test != move.to)
+	    uint32_t test = move->from;
+	    while (test != move->to)
 	    {
 		test += direction;
 		if (_chessboard_get_piecetype(cb, test) != EMPTY) break;
 	    }
-	    if (test == move.to) valid = true;
+	    if (test == move->to) valid = true;
 	}
     }
 
     return valid;
 }
 
-bool _is_rook_move_valid(chessboard* cb, struct _move move)
+bool _is_rook_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_chessboard_get_piecetype(cb, move.from) == ROOK || _chessboard_get_piecetype(cb, move.from) == QUEEN);
-    assert(_chessboard_get_color(cb, move.from) == cb->to_move);
-    assert(_chessboard_get_color(cb, move.to) != cb->to_move);
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_chessboard_get_piecetype(cb, move->from) == ROOK || _chessboard_get_piecetype(cb, move->from) == QUEEN);
+    assert(_chessboard_get_color(cb, move->from) == cb->to_move);
+    assert(_chessboard_get_color(cb, move->to) != cb->to_move);
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
 
     bool valid = false;
-    int32_t diff = move.to - move.from;
+    int32_t diff = move->to - move->from;
     // It would be nice to treat this exactly like the bishop moves, but
     // with directions 16 and 1 instead of 15 and 17.  This works fine
     // for 16 (relying on the fact that, for 0x88 boards, as long as the
@@ -232,46 +265,66 @@ bool _is_rook_move_valid(chessboard* cb, struct _move move)
     // if to and from are on the same rank.  
     if (diff % 16 == 0)
     {
-	int32_t direction = (move.to > move.from) ? 16 : -16;
+	int32_t direction = (move->to > move->from) ? 16 : -16;
 	if (diff % direction == 0)
 	{
-	    uint32_t test = move.from;
-	    while (test != move.to)
+	    uint32_t test = move->from;
+	    while (test != move->to)
 	    {
 		test += direction;
 		if (_chessboard_get_piecetype(cb, test) != EMPTY) break;
 	    }
-	    if (test == move.to) valid = true;
+	    if (test == move->to) valid = true;
 	}
     }
-    else if ((move.to / 16) == (move.from / 16))
+    else if ((move->to / 16) == (move->from / 16))
     {
-	int32_t direction = (move.to > move.from) ? 1 : -1;
-	uint32_t test = move.from;
-	while (test != move.to)
+	int32_t direction = (move->to > move->from) ? 1 : -1;
+	uint32_t test = move->from;
+	while (test != move->to)
 	{
 	    test += direction;
 	    if (_chessboard_get_piecetype(cb, test) != EMPTY) break;
 	}
-	if (test == move.to) valid = true;
+	if (test == move->to) valid = true;
     }
 
+    // NOTE: The is_color_side_rook flags are only used for updating
+    // castling rights, so it's ok to be sloppy when we set these to
+    // true.  For instance, if any rook is leaving H1 (whether it's
+    // white or black) we know that white can't castle short.
+    if (valid && move->from == _get_internal_square(H1))
+    {
+	move->is_white_kings_rook = true;
+    }
+    else if (valid && move->from == _get_internal_square(H8))
+    {
+	move->is_black_kings_rook = true;
+    }
+    else if (valid && move->from == _get_internal_square(A1))
+    {
+	move->is_white_queens_rook = true;
+    }
+    else if (valid && move->from == _get_internal_square(A8))
+    {
+	move->is_black_queens_rook = true;
+    }
     return valid;
 }
 
-bool _is_pawn_move_valid(chessboard* cb, struct _move move)
+bool _is_pawn_move_valid(chessboard* cb, struct _move* move)
 {
-    assert(_chessboard_get_piecetype(cb, move.from) == PAWN);
-    assert(_chessboard_get_color(cb, move.from) == cb->to_move);
-    assert(_chessboard_get_color(cb, move.to) != cb->to_move);
-    assert(_is_square_legal(move.from));
-    assert(_is_square_legal(move.to));
+    assert(_chessboard_get_piecetype(cb, move->from) == PAWN);
+    assert(_chessboard_get_color(cb, move->from) == cb->to_move);
+    assert(_chessboard_get_color(cb, move->to) != cb->to_move);
+    assert(_is_square_legal(move->from));
+    assert(_is_square_legal(move->to));
     
     bool valid = false;
-    int32_t diff = move.to - move.from;
-    chessboard_color from_color = _chessboard_get_color(cb, move.from);
-    uint32_t from_rank = move.from / 16; 
-    chessboard_piecetype to_piece = _chessboard_get_piecetype(cb, move.to);
+    int32_t diff = move->to - move->from;
+    chessboard_color from_color = _chessboard_get_color(cb, move->from);
+    uint32_t from_rank = move->from / 16; 
+    chessboard_piecetype to_piece = _chessboard_get_piecetype(cb, move->to);
     if (from_color == WHITE)
     {
 	valid = ((diff == -16) && (to_piece == EMPTY)) ||
@@ -316,7 +369,7 @@ bool _is_square_attacked(chessboard* cb, uint32_t square, chessboard_color attac
 	struct _piece piece = cb->piecelist[attacker][i];
 	struct _move move = (struct _move){.from=piece.square,
 					   .to=square};
-	if (_is_move_valid(cb, move))
+	if (_is_move_valid(cb, &move))
 	{
 	    valid = true;
 	    break;
