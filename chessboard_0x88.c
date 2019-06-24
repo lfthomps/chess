@@ -315,7 +315,7 @@ void chessboard_switch_current_player(chessboard *cb)
 {
     // WARNING: This relies on the fact that WHITE and BLACK are 0 and
     // 1.  If other colors are used for some reason (maybe to indicate
-    // an error) then this will cause problems.  
+    // an error) then this will cause problems.
     cb->to_move = !(cb->to_move);
 }
 

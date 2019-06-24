@@ -27,6 +27,11 @@ bool chessboard_algmove(chessboard* cb, char* move_str)
     return valid;
 }
 
+// TODO: Pawn moves are buggy.  In particular, legal captures don't always
+// seem to work, but writing them as advances does.  For example, if
+// cxd4 should be a legal move and c4 should not, cxd4 is called illegal,
+// but c4 is called legal and makes the move cxd4.
+
 // TODO: This has a lot of room for improvement.  At the moment, it's a giant,
 // ugly function with many points of exit.  As with everything else, though,
 // I want to get it working first and then make it pretty.

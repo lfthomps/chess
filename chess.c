@@ -91,6 +91,7 @@ int main(int argc, char* argv[])
       {
 	  display_draw_chessboard(buffer, cb);
 	  printf("\n%s\n", buffer);
+	  chessboard_switch_current_player(cb);
       }
       else
       {
