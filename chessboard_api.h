@@ -72,6 +72,16 @@ the standard starting position (with white to move).
 void chessboard_initialize_board(chessboard* cb);
 
 /*
+chessboard_is_rank, is_file and is_piece check if characters are the 
+standard algebraic notation for a rank, file or piece type, respectively.
+Ranks are 1, 2, 3, 4, 5, 6, 7, 8
+Files are a, b, c, d, e, f, g, h
+Pieces are K, Q, R, B, N.
+ */
+bool chessboard_is_rank(char ch);
+bool chessboard_is_file(char ch);
+bool chessboard_is_piece(char ch);
+/*
 chessboard_get_current_player returns the color of the player who has
 the right to move.
  */

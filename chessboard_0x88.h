@@ -25,21 +25,24 @@ struct chessboard {
     struct _castle_rights castle;
 };
 
-#define MAX_INDEX_0X88 128
-#define MAX_PIECES_0X88  16
+#define CB88_MAX_INDEX 128
+#define CB88_MAX_PIECES  16
 
 void DEBUG_print_piecelist(chessboard* cb);
 void DEBUG_print_board(chessboard* cb);
 void DEBUG_print_piece(struct _piece* piece);
 void DEBUG_validate_board(chessboard* cb);
 
-chessboard_color _chessboard_get_color(chessboard* cb, uint32_t square);
-chessboard_piecetype _chessboard_get_piecetype(chessboard* cb, uint32_t square);
+chessboard_color cb88_get_color(chessboard* cb, uint32_t square);
+chessboard_piecetype cb88_get_piecetype(chessboard* cb, uint32_t square);
 
-uint32_t _get_internal_square(chessboard_square square);
-bool _is_square_legal(uint32_t square);
+uint32_t cb88_get_square(chessboard_square square);
+uint32_t cb88_get_square_from_chars(char file, char rank);
+bool cb88_is_square_legal(uint32_t square);
+uint32_t cb88_get_file(uint32_t square);
+uint32_t cb88_get_rank(uint32_t square);
 
-int _set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color);
-void _clear_square(chessboard* cb, uint32_t square);
+int cb88_set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color);
+void cb88_clear_square(chessboard* cb, uint32_t square);
 
 #endif

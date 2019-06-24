@@ -35,6 +35,8 @@ int main(int argc, char* argv[])
   printf("\n");
   printf("%s\n", buffer);
 
+  // Testing movement code.  This will eventually be moved out to
+  // some nicer automated tests.  
   assert(chessboard_move(cb, E2, E4));
   display_draw_chessboard(buffer, cb);
   assert(!chessboard_move(cb, B1, D4));
@@ -47,6 +49,27 @@ int main(int argc, char* argv[])
   assert(!chessboard_move(cb, G8, F6));
   assert(!chessboard_move(cb, E5, G4));
   assert(chessboard_move(cb, G1, H3));
+  assert(!chessboard_move(cb, F1, F2));
+  assert(!chessboard_move(cb, F1, G2));
+  assert(chessboard_move(cb, F1, C4));
+  display_draw_chessboard(buffer, cb);
+  assert(chessboard_move(cb, E1, G1));
+  display_draw_chessboard(buffer, cb);
+  assert(!chessboard_move(cb, G1, F2));
+  assert(chessboard_move(cb, F2, F3));
+  display_draw_chessboard(buffer, cb);
+  assert(chessboard_move(cb, G1, F2));
+  display_draw_chessboard(buffer, cb);
+  assert(chessboard_move(cb, F2, E1));
+  display_draw_chessboard(buffer, cb);
+  assert(!chessboard_move(cb, F1, F3));
+  assert(chessboard_move(cb, F1, F2));
+  display_draw_chessboard(buffer, cb);
+  assert(chessboard_move(cb, F2, F1));
+  display_draw_chessboard(buffer, cb);
+  assert(chessboard_move(cb, F1, H1));
+  display_draw_chessboard(buffer, cb);
+  assert(!chessboard_move(cb, E1, G1));
 
   display_draw_chessboard(buffer, cb);
   printf("\n%s\n", buffer);

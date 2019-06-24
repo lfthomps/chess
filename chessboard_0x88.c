@@ -63,7 +63,7 @@ void DEBUG_print_piecelist(chessboard* cb)
     printf("Printing Pieces: \n");
     for (int i = 0; i < 2; i++)
     {
-	for (int j = 0; j < MAX_PIECES_0X88; j++)
+	for (int j = 0; j < CB88_MAX_PIECES; j++)
 	{
 	    struct _piece piece = cb->piecelist[i][j];
 	    printf("Piece %d:\n", j);
@@ -74,7 +74,7 @@ void DEBUG_print_piecelist(chessboard* cb)
 
 void DEBUG_print_board(chessboard* cb)
 {
-    for (uint32_t i = 0; i < MAX_INDEX_0X88; i++)
+    for (uint32_t i = 0; i < CB88_MAX_INDEX; i++)
     {
 	if (cb->board[i])
 	{
@@ -140,7 +140,7 @@ void DEBUG_validate_board(chessboard* cb)
     // I should write a nicer assert macro to handle this for me.
     bool valid = true;
 
-    for (uint32_t square = 0; square < MAX_INDEX_0X88; square++)
+    for (uint32_t square = 0; square < CB88_MAX_INDEX; square++)
     {
 	if (cb->board[square])
 	{
@@ -153,12 +153,12 @@ void DEBUG_validate_board(chessboard* cb)
 	    // it, this works as expected on the vast majority of
 	    // systems.
 	    valid = (cb->board[square] >= &cb->piecelist[0][0]) &&
-		(cb->board[square] < &cb->piecelist[1][MAX_INDEX_0X88]);
+		(cb->board[square] <= &cb->piecelist[1][CB88_MAX_INDEX-1]);
 	    if (!valid) printf("Square %d has invalid address %p\n", square, cb->board[square]);
 	    assert(valid);
 	    
 	    struct _piece piece = *(cb->board[square]);
-	    valid = piece.square == square;
+	    valid = (piece.square == square);
 	    if (!valid) printf("board[%d] points to piece with square %d\n", square, piece.square);
 	    assert(valid);
 	    
@@ -166,20 +166,20 @@ void DEBUG_validate_board(chessboard* cb)
 	    // such that valid pieces are between EMPTY and
 	    // CHESSBOARD_MAX_PIECETYPE.  If that enum is reordered,
 	    // this will have to change.  
-	    valid = (piece.type > EMPTY) &&
-		(piece.type < CHESSBOARD_MAX_PIECETYPE);
+	    valid = ((piece.type > EMPTY) &&
+		     (piece.type < CHESSBOARD_MAX_PIECETYPE));
 	    if (!valid) printf("Square %d has invalid piecetype %d\n", square, piece.type);
 	    assert(valid);
 	}
     }
     for (chessboard_color color = WHITE; color < CHESSBOARD_MAX_COLOR; color++)
     {
-	for (int i = 0; i < MAX_PIECES_0X88; i++)
+	for (int i = 0; i < CB88_MAX_PIECES; i++)
 	{
 	    struct _piece piece = cb->piecelist[color][i];
-	    if (piece.square ==	MAX_INDEX_0X88)
+	    if (piece.square ==	CB88_MAX_INDEX)
 	    {
-		valid = piece.type == EMPTY;
+		valid = (piece.type == EMPTY);
 		if (!valid)
 		{
 		    printf("Piecelist[%d][%d] is empty but has non-empty type %d\n", color, i, piece.type);
@@ -187,7 +187,7 @@ void DEBUG_validate_board(chessboard* cb)
 		}
 		assert(valid);
 
-		valid = piece.color == CHESSBOARD_MAX_COLOR;
+		valid = (piece.color == CHESSBOARD_MAX_COLOR);
 		if (!valid)
 		{
 		    printf("Piecelist[%d][%d] is empty but has color %d (should be CHESSBOARD_MAX_COLOR)\n", color, i, piece.color);
@@ -220,18 +220,18 @@ chessboard* chessboard_allocate()
     chessboard* cb = (chessboard *)malloc(sizeof(chessboard));
     if (cb)
     {
-	for (int index = 0; index < MAX_INDEX_0X88; index++)
+	for (int index = 0; index < CB88_MAX_INDEX; index++)
 	{
 	    cb->board[index] = 0;
 	}
 	for (int color = WHITE; color < CHESSBOARD_MAX_COLOR; color++)
 	{
-	    for (int piece = 0; piece < MAX_PIECES_0X88; piece++)
+	    for (int piece = 0; piece < CB88_MAX_PIECES; piece++)
 	    {
 		cb->piecelist[color][piece] =
 		    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
 				    .type=EMPTY,
-				    .square=MAX_INDEX_0X88};
+				    .square=CB88_MAX_INDEX};
 	    }
 	}
 	cb->to_move = CHESSBOARD_MAX_COLOR;
@@ -256,52 +256,52 @@ void chessboard_initialize_board(chessboard* cb)
     
     for (enum chessboard_square square = A7; square < A6; square++)
     {
-	uint32_t index = _get_internal_square(square);
-	_set_square(cb, index, PAWN, BLACK);
+	uint32_t index = cb88_get_square(square);
+	cb88_set_square(cb, index, PAWN, BLACK);
     }
     for (enum chessboard_square square = A2; square < A1; square++)
     {
-	uint32_t index = _get_internal_square(square);
-	_set_square(cb, index, PAWN, WHITE);
+	uint32_t index = cb88_get_square(square);
+	cb88_set_square(cb, index, PAWN, WHITE);
     }
-    _set_square(cb, _get_internal_square(A8), ROOK, BLACK);
-    _set_square(cb, _get_internal_square(B8), KNIGHT, BLACK);
-    _set_square(cb, _get_internal_square(C8), BISHOP, BLACK);
-    _set_square(cb, _get_internal_square(D8), QUEEN, BLACK);
-    _set_square(cb, _get_internal_square(E8), KING, BLACK);
-    _set_square(cb, _get_internal_square(F8), BISHOP, BLACK);
-    _set_square(cb, _get_internal_square(G8), KNIGHT, BLACK);
-    _set_square(cb, _get_internal_square(H8), ROOK, BLACK);
-    _set_square(cb, _get_internal_square(A1), ROOK, WHITE);
-    _set_square(cb, _get_internal_square(B1), KNIGHT, WHITE);
-    _set_square(cb, _get_internal_square(C1), BISHOP, WHITE);
-    _set_square(cb, _get_internal_square(D1), QUEEN, WHITE);
-    _set_square(cb, _get_internal_square(E1), KING, WHITE);
-    _set_square(cb, _get_internal_square(F1), BISHOP, WHITE);
-    _set_square(cb, _get_internal_square(G1), KNIGHT, WHITE);
-    _set_square(cb, _get_internal_square(H1), ROOK, WHITE);
+    cb88_set_square(cb, cb88_get_square(A8), ROOK, BLACK);
+    cb88_set_square(cb, cb88_get_square(B8), KNIGHT, BLACK);
+    cb88_set_square(cb, cb88_get_square(C8), BISHOP, BLACK);
+    cb88_set_square(cb, cb88_get_square(D8), QUEEN, BLACK);
+    cb88_set_square(cb, cb88_get_square(E8), KING, BLACK);
+    cb88_set_square(cb, cb88_get_square(F8), BISHOP, BLACK);
+    cb88_set_square(cb, cb88_get_square(G8), KNIGHT, BLACK);
+    cb88_set_square(cb, cb88_get_square(H8), ROOK, BLACK);
+    cb88_set_square(cb, cb88_get_square(A1), ROOK, WHITE);
+    cb88_set_square(cb, cb88_get_square(B1), KNIGHT, WHITE);
+    cb88_set_square(cb, cb88_get_square(C1), BISHOP, WHITE);
+    cb88_set_square(cb, cb88_get_square(D1), QUEEN, WHITE);
+    cb88_set_square(cb, cb88_get_square(E1), KING, WHITE);
+    cb88_set_square(cb, cb88_get_square(F1), BISHOP, WHITE);
+    cb88_set_square(cb, cb88_get_square(G1), KNIGHT, WHITE);
+    cb88_set_square(cb, cb88_get_square(H1), ROOK, WHITE);
 
     DEBUG_validate_board(cb);
 }
 
 chessboard_piecetype chessboard_get_piecetype(chessboard* cb, chessboard_square square)
 {
-    uint32_t index = _get_internal_square(square);
+    uint32_t index = cb88_get_square(square);
     return cb->board[index] ? cb->board[index]->type : EMPTY;
 }
 
-chessboard_piecetype _chessboard_get_piecetype(chessboard* cb, uint32_t square)
+chessboard_piecetype cb88_get_piecetype(chessboard* cb, uint32_t square)
 {
     return cb->board[square] ? cb->board[square]->type : EMPTY;
 }
 
 chessboard_color chessboard_get_color(chessboard* cb, chessboard_square square)
 {
-    uint32_t index = _get_internal_square(square);
+    uint32_t index = cb88_get_square(square);
     return cb->board[index] ? cb->board[index]->color : CHESSBOARD_MAX_COLOR;
 }
 
-chessboard_color _chessboard_get_color(chessboard* cb, uint32_t square)
+chessboard_color cb88_get_color(chessboard* cb, uint32_t square)
 {
     return cb->board[square] ? cb->board[square]->color : CHESSBOARD_MAX_COLOR;
 }
@@ -319,23 +319,54 @@ void chessboard_switch_current_player(chessboard *cb)
     cb->to_move = !(cb->to_move);
 }
 
-uint32_t _get_internal_square(chessboard_square square)
+uint32_t cb88_get_square(chessboard_square square)
 {
     assert(square >= A8);
     assert(square < CHESSBOARD_MAX_SQUARE);
     return internal_squares[square];
 }
 
-bool _is_square_legal(uint32_t square)
+uint32_t cb88_get_square_from_chars(char file, char rank)
+{
+    return (7 - (uint32_t)(rank - '1')) * 8 + (uint32_t)(file - 'a');
+}
+
+bool cb88_is_square_legal(uint32_t square)
 {
     return !(square & 0x88);
 }
 
-int _set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color)
+uint32_t cb88_get_file(uint32_t square)
+{
+    return square & 0xF;
+}
+
+uint32_t cb88_get_rank(uint32_t square)
+{
+    return (square >> 4) & 0xF;
+}
+
+bool chessboard_is_rank(char ch)
+{
+    return (ch >= '1') && (ch <= '8');
+}
+
+bool chessboard_is_file(char ch)
+{
+    return (ch >= 'a') && (ch <= 'h');
+}
+
+bool chessboard_is_piece(char ch)
+{
+    return (ch == 'K') || (ch == 'Q') || (ch == 'N') || (ch == 'B');
+}
+
+int cb88_set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color)
 {
     int i = 0;
-    while ((i < MAX_PIECES_0X88) && (cb->piecelist[color][i].type != EMPTY)) i++;
-    if (i >= MAX_PIECES_0X88)
+    while ((i < CB88_MAX_PIECES) && (cb->piecelist[color][i].type != EMPTY)) i++;
+    // TODO: Is this check actually doing anything?  Come back and look.  
+    if (i >= CB88_MAX_PIECES)
     {
 	printf("DEBUG: Added more than 16 pieces to board\n");
 	return -1;
@@ -348,14 +379,14 @@ int _set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, ches
     return 0;
 }
 
-void _clear_square(chessboard* cb, uint32_t square)
+void cb88_clear_square(chessboard* cb, uint32_t square)
 {
     if (cb->board[square])
     {
 	*(cb->board[square]) =
 	    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
 			    .type=EMPTY,
-			    .square=MAX_INDEX_0X88};
+			    .square=CB88_MAX_INDEX};
     }
     cb->board[square] = NULL;
 }
