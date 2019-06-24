@@ -27,11 +27,6 @@ bool chessboard_algmove(chessboard* cb, char* move_str)
     return valid;
 }
 
-// TODO: Pawn moves are buggy.  In particular, legal captures don't always
-// seem to work, but writing them as advances does.  For example, if
-// cxd4 should be a legal move and c4 should not, cxd4 is called illegal,
-// but c4 is called legal and makes the move cxd4.
-
 // TODO: This has a lot of room for improvement.  At the moment, it's a giant,
 // ugly function with many points of exit.  As with everything else, though,
 // I want to get it working first and then make it pretty.
@@ -64,7 +59,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	move->is_castle = true;
 	move->is_king = true;
 	
-	return cb88_is_castle_move_valid(cb, move);
+	return cb88_is_move_valid(cb, move);
     }
     else if (!strcmp(move_str, "O-O-O") || !strcmp(move_str, "o-o-o") || !strcmp(move_str, "0-0-0"))
     {
@@ -81,7 +76,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	move->is_castle = true;
 	move->is_king = true;
 
-	return cb88_is_castle_move_valid(cb, move);
+	return cb88_is_move_valid(cb, move);
     }
 
     // clean_str will hold the move with all trailing symbols
@@ -134,7 +129,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 		{
 		    move->to = to;
 		    move->from = cb->piecelist[color][i].square;
-		    valid = cb88_is_pawn_move_valid(cb, move);
+		    valid = cb88_is_move_valid(cb, move);
 		}
 	    }
 	    return valid;
@@ -165,7 +160,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 		{
 		    move->to = to;
 		    move->from = piece.square;
-		    valid = cb88_is_pawn_move_valid(cb, move);
+		    valid = cb88_is_move_valid(cb, move);
 		}
 	    }
 	    return valid;
