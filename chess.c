@@ -37,39 +37,39 @@ int main(int argc, char* argv[])
 
   // Testing movement code.  This will eventually be moved out to
   // some nicer automated tests.  
-  assert(chessboard_move(cb, E2, E4));
+  assert(chessboard_algmove(cb, "e4"));
   display_draw_chessboard(buffer, cb);
-  assert(!chessboard_move(cb, B1, D4));
-  assert(!chessboard_move(cb, B1, D2));
-  assert(chessboard_move(cb, B1, C3));
+  assert(!chessboard_algmove(cb, "Nd4"));
+  assert(!chessboard_algmove(cb, "Nd2"));
+  assert(chessboard_algmove(cb, "Nc3"));
   display_draw_chessboard(buffer, cb);
-  assert(!chessboard_move(cb, C3, H4));
-  assert(chessboard_move(cb, C3, A4));
-  assert(!chessboard_move(cb, A4, G5));
-  assert(!chessboard_move(cb, G8, F6));
-  assert(!chessboard_move(cb, E5, G4));
-  assert(chessboard_move(cb, G1, H3));
-  assert(!chessboard_move(cb, F1, F2));
-  assert(!chessboard_move(cb, F1, G2));
-  assert(chessboard_move(cb, F1, C4));
+  assert(!chessboard_algmove(cb, "Nh4"));
+  assert(chessboard_algmove(cb, "Na4"));
   display_draw_chessboard(buffer, cb);
-  assert(chessboard_move(cb, E1, G1));
+  assert(!chessboard_algmove(cb, "Ng5"));
+  assert(!chessboard_algmove(cb, "Nf6"));
+  assert(chessboard_algmove(cb, "Nh3"));
+  assert(!chessboard_algmove(cb, "Bf2"));
+  assert(!chessboard_algmove(cb, "Bg2"));
+  assert(chessboard_algmove(cb, "Bc4"));
   display_draw_chessboard(buffer, cb);
-  assert(!chessboard_move(cb, G1, F2));
-  assert(chessboard_move(cb, F2, F3));
+  assert(chessboard_algmove(cb, "O-O"));
   display_draw_chessboard(buffer, cb);
-  assert(chessboard_move(cb, G1, F2));
+  assert(!chessboard_algmove(cb, "Kf2"));
+  assert(chessboard_algmove(cb, "f3"));
   display_draw_chessboard(buffer, cb);
-  assert(chessboard_move(cb, F2, E1));
+  assert(chessboard_algmove(cb, "Kf2"));
   display_draw_chessboard(buffer, cb);
-  assert(!chessboard_move(cb, F1, F3));
-  assert(chessboard_move(cb, F1, F2));
+  assert(chessboard_algmove(cb, "Ke1"));
   display_draw_chessboard(buffer, cb);
-  assert(chessboard_move(cb, F2, F1));
+  assert(!chessboard_algmove(cb, "Rf3"));
+  assert(chessboard_algmove(cb, "Rf2"));
   display_draw_chessboard(buffer, cb);
-  assert(chessboard_move(cb, F1, H1));
+  assert(chessboard_algmove(cb, "Rf1"));
   display_draw_chessboard(buffer, cb);
-  assert(!chessboard_move(cb, E1, G1));
+  assert(chessboard_algmove(cb, "Rh1"));
+  display_draw_chessboard(buffer, cb);
+  assert(!chessboard_algmove(cb, "O-O"));
 
   display_draw_chessboard(buffer, cb);
   printf("\n%s\n", buffer);
@@ -78,49 +78,16 @@ int main(int argc, char* argv[])
   // to test things a little more easily.  
   while (true)
   {
-      chessboard_square from = CHESSBOARD_MAX_SQUARE;
-      chessboard_square to = CHESSBOARD_MAX_SQUARE;
-      char input_buffer[4] = {};
-      unsigned char rank = '\0';
-      unsigned char file = '\0';
-      bool valid_square = true;
-      
-      printf("Enter from square: ");
-      if (input_buffer[0] == 'q')
-      {
-	  printf("\n");
-	  break;
-      }
-      fgets(input_buffer, 4, stdin);
-      file = tolower(input_buffer[0]);
-      rank = input_buffer[1];
-      if (file >= 'a' && file <= 'h' && rank >= '1' && rank <= '8')
-      {
-	  from = (7 - (int)(rank - '1')) * 8 + (int)(file - 'a');
-      }
-      else
-      {
-	  valid_square = false;
-      }
-      printf("Enter to square: ");
-      if (input_buffer[0] == 'q')
-      {
-	  printf("\n");
-	  break;
-      }
-      fgets(input_buffer, 4, stdin);
-            file = tolower(input_buffer[0]);
-      rank = input_buffer[1];
-      if (file >= 'a' && file <= 'h' && rank >= '1' && rank <= '8')
-      {
-	  to = (7 - (int)(rank - '1')) * 8 + (int)(file - 'a');
-      }
-      else
-      {
-	  valid_square = false;
-      }
+      char move_str[32] = {0};
 
-      if (valid_square && chessboard_move(cb, from, to))
+      printf("Enter move (q to quit): ");
+      fgets(move_str, 32, stdin);
+      if (move_str[0] == 'q')
+      {
+	  printf("\n");
+	  break;
+      }
+      else if (chessboard_algmove(cb, move_str))
       {
 	  display_draw_chessboard(buffer, cb);
 	  printf("\n%s\n", buffer);

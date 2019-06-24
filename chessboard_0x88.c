@@ -328,7 +328,7 @@ uint32_t cb88_get_square(chessboard_square square)
 
 uint32_t cb88_get_square_from_chars(char file, char rank)
 {
-    return (7 - (uint32_t)(rank - '1')) * 8 + (uint32_t)(file - 'a');
+    return (7 - (uint32_t)(rank - '1')) * 16 + (uint32_t)(file - 'a');
 }
 
 bool cb88_is_square_legal(uint32_t square)
@@ -358,7 +358,7 @@ bool chessboard_is_file(char ch)
 
 bool chessboard_is_piece(char ch)
 {
-    return (ch == 'K') || (ch == 'Q') || (ch == 'N') || (ch == 'B');
+    return (ch == 'K') || (ch == 'Q') || (ch == 'R') || (ch == 'N') || (ch == 'B');
 }
 
 int cb88_set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, chessboard_color color)

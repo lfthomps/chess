@@ -11,6 +11,8 @@ bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square t
 		       .to=cb88_get_square(to)};
     bool valid = cb88_is_move_valid(cb, &move);
     if (valid) cb88_move_unchecked(cb, &move);
+
+    // Handle castling (TODO: Clean this up)
     if (move.is_castle) _move_rook_castling(cb, &move);
     if (move.is_king) cb->castle = (struct _castle_rights){false};
     if (move.is_white_kings_rook) cb->castle.white_short = false;

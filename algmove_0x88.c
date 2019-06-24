@@ -9,6 +9,24 @@
 
 #include <stdio.h> // For debugging
 
+bool chessboard_algmove(chessboard* cb, char* move_str)
+{
+    struct _move move = {};
+    bool valid = cb88_is_alg_move_valid(cb, move_str, &move);
+    if (valid) cb88_move_unchecked(cb, &move);
+    
+    // Handle castling (TODO: Clean this up)
+    if (move.is_castle) _move_rook_castling(cb, &move);
+    if (move.is_king) cb->castle = (struct _castle_rights){false};
+    if (move.is_white_kings_rook) cb->castle.white_short = false;
+    if (move.is_white_queens_rook) cb->castle.white_long = false;
+    if (move.is_black_kings_rook) cb->castle.black_short = false;
+    if (move.is_black_queens_rook) cb->castle.black_long = false;
+
+    DEBUG_validate_board(cb);
+    return valid;
+}
+
 // TODO: This has a lot of room for improvement.  At the moment, it's a giant,
 // ugly function with many points of exit.  As with everything else, though,
 // I want to get it working first and then make it pretty.
@@ -75,13 +93,14 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
     // seems to be to try to find a move at the start of the string
     // and ignore all trailing text.
     // TODO: Handle white space in move (e.g., N x e4)
-    char clean_str[7];
+    char clean_str[7] = {0};
     int i = 0;
     while ((chessboard_is_piece(move_str[i]) || chessboard_is_file(move_str[i]) ||
 	    chessboard_is_rank(move_str[i]) || move_str[i] == 'x' ||
 	    move_str[i] == '=') && i < 6)
     {
 	clean_str[i] = move_str[i];
+	i++;
     }
     int len = strlen(clean_str);
     if (len < 2)
@@ -119,12 +138,16 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	// For the moment we are not allowing the shorthand (file)x(file).
 	// As with advances, there might be extra characters afterwards,
 	// but they can be ignored.
-	else if (clean_str[1] == 'x' && len >= 4 &&
+
+	// TODO: If a pawn capture (such as exd4) is legal, then it can
+	// be entered without the caputre syntax.  For example, d4 would
+	// make the capture.  This should be fixed.
+	if (clean_str[1] == 'x' && len >= 4 &&
 		 chessboard_is_file(clean_str[2]) &&
 		 chessboard_is_rank(clean_str[3]))
 	{
 	    uint32_t to = cb88_get_square_from_chars(clean_str[2], clean_str[3]);
-	    uint32_t file = (uint32_t)(clean_str[2] - 'a');
+	    uint32_t file = (uint32_t)(clean_str[0] - 'a');
 	    for (int i = 0; i < CB88_MAX_PIECES; i++)
 	    {
 		struct _piece piece = cb->piecelist[color][i];
@@ -154,19 +177,19 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
     switch (clean_str[0])
     {
     case 'K':
-	_is_alg_piece_move_valid(cb, clean_str, move, KING);
+	valid = _is_alg_piece_move_valid(cb, clean_str, move, KING);
 	break;
     case 'Q':
-	_is_alg_piece_move_valid(cb, clean_str, move, QUEEN);
+	valid = _is_alg_piece_move_valid(cb, clean_str, move, QUEEN);
 	break;
     case 'R':
-	_is_alg_piece_move_valid(cb, clean_str, move, ROOK);
+	valid = _is_alg_piece_move_valid(cb, clean_str, move, ROOK);
 	break;
     case 'N':
-	_is_alg_piece_move_valid(cb, clean_str, move, KNIGHT);
+	valid = _is_alg_piece_move_valid(cb, clean_str, move, KNIGHT);
 	break;
     case 'B':
-	_is_alg_piece_move_valid(cb, clean_str, move, BISHOP);
+	valid = _is_alg_piece_move_valid(cb, clean_str, move, BISHOP);
 	break;
     default:
 	break;
@@ -226,6 +249,7 @@ bool _is_alg_piece_move_valid(chessboard* cb, char* clean_str, struct _move* mov
     // if there is no rank hint or if there is a rank hint and the from square
     // matches the hint.
     chessboard_color color = cb->to_move;
+    uint32_t from_final = CB88_MAX_INDEX;
     int moves_found = 0;
     for (int k = 0; k < CB88_MAX_PIECES; k++)
     {
@@ -236,13 +260,21 @@ bool _is_alg_piece_move_valid(chessboard* cb, char* clean_str, struct _move* mov
 	    (!has_file_hint || (cb88_get_file(from) == file_hint)))
 	{
 	    move->from = from;
-	    if (cb88_is_move_valid(cb, move)) moves_found++;
+	    if (cb88_is_move_valid(cb, move))
+	    {
+		from_final = from;
+		moves_found++;
+	    }
 	}
     }
 
     // TODO: It would be nice to be able to tell the user if there is no
     // matching move or too many matching moves.  That would require
     // rewriting these functions with error codes instead of true/false.
-    if (moves_found == 1) valid = true;
+    if (moves_found == 1)
+    {
+	move->from = from_final;
+	valid = true;
+    }
     return valid;
 }

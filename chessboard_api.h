@@ -113,4 +113,11 @@ legality.  It seems messy to trust callers to check legality themselves.
  */
 bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square to);
 
+/*
+chessboard_algmove takes a move in standard algebraic notation, checks
+if it is legal and makes the move if it is.  If the move is legal it 
+returns true.  Otherwise it returns false.
+ */
+bool chessboard_algmove(chessboard* cb, char* move_str);
+
 #endif
