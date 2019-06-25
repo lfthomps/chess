@@ -89,7 +89,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
     //
     // A reasonable user might input a fairly long string if
     // they include check/mate, qualitative descriptions like
-    // !, ? or +/-, or scores like 1-0.  A reasonable approach
+    // !, ? or +/-, or scores like 1-0.  A good approach
     // seems to be to try to find a move at the start of the string
     // and ignore all trailing text.
     // TODO: Handle white space in move (e.g., N x e4)
@@ -118,18 +118,23 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	if (chessboard_is_rank(clean_str[1]))
 	{
 	    uint32_t to = cb88_get_square_from_chars(clean_str[0], clean_str[1]);
+	    uint32_t file = cb88_get_file(to);
 	    for (int i = 0; i < CB88_MAX_PIECES; i++)
 	    {
-		// The check of !valid is to make sure we don't overwrite
-		// the move struct once we find a legal move.  This loop
-		// is made simpler by the fact that pawn advances can't be
-		// ambiguous.  That is, there are never two pawns of the
-		// same color that can advance to the same square.
-		if (!valid && (cb->piecelist[color][i].type == PAWN))
+                // It's worth
+		// noting that there can never be two different pawns of the
+		// same color that can *advance* to the same square, but
+		// there may be other pawns on adjacent files that can
+		// capture and go to the same square.  We therefore
+		// need to check that the pawn is moving from the correct
+		// file, but once we find a valid move we can stop.  
+		if ((cb->piecelist[color][i].type == PAWN) &&
+		    (cb88_get_file(cb->piecelist[color][i].square) == file))
 		{
 		    move->to = to;
 		    move->from = cb->piecelist[color][i].square;
 		    valid = cb88_is_move_valid(cb, move);
+		    if (valid) break;
 		}
 	    }
 	    return valid;
@@ -138,10 +143,6 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	// For the moment we are not allowing the shorthand (file)x(file).
 	// As with advances, there might be extra characters afterwards,
 	// but they can be ignored.
-
-	// TODO: If a pawn capture (such as exd4) is legal, then it can
-	// be entered without the caputre syntax.  For example, d4 would
-	// make the capture.  This should be fixed.
 	if (clean_str[1] == 'x' && len >= 4 &&
 		 chessboard_is_file(clean_str[2]) &&
 		 chessboard_is_rank(clean_str[3]))
@@ -152,15 +153,12 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	    {
 		struct _piece piece = cb->piecelist[color][i];
 		// Similar to the advance version above.
-		// The check of !valid is to make sure we don't overwrite
-		// the move struct once we find a legal move.  As with
-		// advances, pawn captures can't be ambiguous.
-
-		if (!valid && (piece.type == PAWN) && (cb88_get_file(piece.square) == file))
+		if ((piece.type == PAWN) && (cb88_get_file(piece.square) == file))
 		{
 		    move->to = to;
 		    move->from = piece.square;
 		    valid = cb88_is_move_valid(cb, move);
+		    if (valid) break;
 		}
 	    }
 	    return valid;
@@ -171,9 +169,6 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
     // All piece moves are of the form
     // (type)[file_hint][rank_hint][x](file)(rank)
     // plus some possible extra characters at the end, like '+' or '#'.
-    //
-    // Throughout this code, we use the fact that the string is known
-    // to be at least two characters long.
     switch (clean_str[0])
     {
     case 'K':
@@ -241,6 +236,7 @@ bool _is_alg_piece_move_valid(chessboard* cb, char* clean_str, struct _move* mov
 	    // is malformed.
 	    return false;
 	}
+	i--;
     }
 
     // We now need to check each piece of the appropriate color and type and
