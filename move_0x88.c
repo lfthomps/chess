@@ -14,7 +14,7 @@ bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square t
 
     // Handle castling (TODO: Clean this up)
     if (move.is_castle) _move_rook_castling(cb, &move);
-    if (move.is_king) cb->castle = (struct _castle_rights){false};
+    if (move.is_king) cb->castle = (struct castle_rights){false};
     if (move.is_white_kings_rook) cb->castle.white_short = false;
     if (move.is_white_queens_rook) cb->castle.white_long = false;
     if (move.is_black_kings_rook) cb->castle.black_short = false;
@@ -322,7 +322,7 @@ bool cb88_is_pawn_move_valid(chessboard* cb, struct _move* move)
 bool cb88_is_player_in_check(chessboard* cb, chessboard_color player)
 {
     int i = 0;
-    struct _piece piece = cb->piecelist[player][i];
+    struct piece piece = cb->piecelist[player][i];
     while (piece.type != KING)
     {
 	i++;
@@ -344,7 +344,7 @@ bool cb88_is_square_attacked(chessboard* cb, uint32_t square, chessboard_color a
     bool valid = false;
     for (int i = 0; i < CB88_MAX_PIECES; i++)
     {
-	struct _piece piece = cb->piecelist[attacker][i];
+	struct piece piece = cb->piecelist[attacker][i];
 	struct _move move = (struct _move){.from=piece.square,
 					   .to=square};
 	if (cb88_is_move_valid(cb, &move))

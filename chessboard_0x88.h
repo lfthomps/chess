@@ -5,13 +5,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct _piece {
+struct piece {
     chessboard_color color;
     chessboard_piecetype type;
     uint32_t square;
 };
 
-struct _castle_rights {
+struct castle_rights {
     bool white_short;
     bool white_long;
     bool black_short;
@@ -19,10 +19,10 @@ struct _castle_rights {
 };
 
 struct chessboard {
-    struct _piece * board[128];
-    struct _piece piecelist[2][16];
+    struct piece * board[128];
+    struct piece piecelist[2][16];
     chessboard_color to_move;
-    struct _castle_rights castle;
+    struct castle_rights castle;
 };
 
 #define CB88_MAX_INDEX 128
@@ -30,7 +30,7 @@ struct chessboard {
 
 void DEBUG_print_piecelist(chessboard* cb);
 void DEBUG_print_board(chessboard* cb);
-void DEBUG_print_piece(struct _piece* piece);
+void DEBUG_print_piece(struct piece* piece);
 void DEBUG_validate_board(chessboard* cb);
 
 chessboard_color cb88_get_color(chessboard* cb, uint32_t square);

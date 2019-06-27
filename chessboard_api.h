@@ -105,11 +105,6 @@ void chessboard_switch_current_player(chessboard *cb);
 chessboard_move checks if it is legal to move a piece from "from"
  to "to".  If the move is legal, chessboard_move makes it and returns
 true.  Otherwise it returns false.
-
-TODO: Do we want to split this into a method that validates if moves 
-are legal and another that makes legal moves?  I'm going to leave it
-as is until we run into a use case that *really* wants to pre-check
-legality.  It seems messy to trust callers to check legality themselves.
  */
 bool chessboard_move(chessboard* cb, chessboard_square from, chessboard_square to);
 

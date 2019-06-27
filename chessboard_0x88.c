@@ -65,7 +65,7 @@ void DEBUG_print_piecelist(chessboard* cb)
     {
 	for (int j = 0; j < CB88_MAX_PIECES; j++)
 	{
-	    struct _piece piece = cb->piecelist[i][j];
+	    struct piece piece = cb->piecelist[i][j];
 	    printf("Piece %d:\n", j);
 	    DEBUG_print_piece(&piece);
 	}
@@ -84,7 +84,7 @@ void DEBUG_print_board(chessboard* cb)
     }
 }
 
-void DEBUG_print_piece(struct _piece* piece)
+void DEBUG_print_piece(struct piece* piece)
 {
     chessboard_color color = piece->color;
     chessboard_piecetype type = piece->type;
@@ -157,7 +157,7 @@ void DEBUG_validate_board(chessboard* cb)
 	    if (!valid) printf("Square %d has invalid address %p\n", square, cb->board[square]);
 	    assert(valid);
 	    
-	    struct _piece piece = *(cb->board[square]);
+	    struct piece piece = *(cb->board[square]);
 	    valid = (piece.square == square);
 	    if (!valid) printf("board[%d] points to piece with square %d\n", square, piece.square);
 	    assert(valid);
@@ -176,7 +176,7 @@ void DEBUG_validate_board(chessboard* cb)
     {
 	for (int i = 0; i < CB88_MAX_PIECES; i++)
 	{
-	    struct _piece piece = cb->piecelist[color][i];
+	    struct piece piece = cb->piecelist[color][i];
 	    if (piece.square ==	CB88_MAX_INDEX)
 	    {
 		valid = (piece.type == EMPTY);
@@ -211,7 +211,7 @@ void DEBUG_validate_board(chessboard* cb)
 #else // #ifndef NDEBUG
 void DEBUG_print_piecelist(chessboard* cb) {}
 void DEBUG_print_board(chessboard* cb) {}
-void DEBUG_print_piece(struct _piece* piece) {}
+void DEBUG_print_piece(struct piece* piece) {}
 void DEBUG_validate_board(chessboard* cb) {}
 #endif // #ifndef NDEBUG
 
@@ -229,7 +229,7 @@ chessboard* chessboard_allocate()
 	    for (int piece = 0; piece < CB88_MAX_PIECES; piece++)
 	    {
 		cb->piecelist[color][piece] =
-		    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
+		    (struct piece){.color=CHESSBOARD_MAX_COLOR,
 				    .type=EMPTY,
 				    .square=CB88_MAX_INDEX};
 	    }
@@ -252,7 +252,7 @@ void chessboard_free(chessboard* cb)
 void chessboard_initialize_board(chessboard* cb)
 {
     cb->to_move = WHITE;
-    cb->castle = (struct _castle_rights){true, true, true, true};
+    cb->castle = (struct castle_rights){true, true, true, true};
     
     for (enum chessboard_square square = A7; square < A6; square++)
     {
@@ -371,7 +371,7 @@ int cb88_set_square(chessboard* cb, uint32_t square, chessboard_piecetype type, 
 	printf("DEBUG: Added more than 16 pieces to board\n");
 	return -1;
     }
-    cb->piecelist[color][i] = (struct _piece){.color=color,
+    cb->piecelist[color][i] = (struct piece){.color=color,
 					      .type=type,
 					      .square=square};
     cb->board[square] = &(cb->piecelist[color][i]);
@@ -384,7 +384,7 @@ void cb88_clear_square(chessboard* cb, uint32_t square)
     if (cb->board[square])
     {
 	*(cb->board[square]) =
-	    (struct _piece){.color=CHESSBOARD_MAX_COLOR,
+	    (struct piece){.color=CHESSBOARD_MAX_COLOR,
 			    .type=EMPTY,
 			    .square=CB88_MAX_INDEX};
     }

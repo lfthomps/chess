@@ -17,7 +17,7 @@ bool chessboard_algmove(chessboard* cb, char* move_str)
     
     // Handle castling (TODO: Clean this up)
     if (move.is_castle) _move_rook_castling(cb, &move);
-    if (move.is_king) cb->castle = (struct _castle_rights){false};
+    if (move.is_king) cb->castle = (struct castle_rights){false};
     if (move.is_white_kings_rook) cb->castle.white_short = false;
     if (move.is_white_queens_rook) cb->castle.white_long = false;
     if (move.is_black_kings_rook) cb->castle.black_short = false;
@@ -151,7 +151,7 @@ bool cb88_is_alg_move_valid(chessboard* cb, char* move_str, struct _move* move)
 	    uint32_t file = (uint32_t)(clean_str[0] - 'a');
 	    for (int i = 0; i < CB88_MAX_PIECES; i++)
 	    {
-		struct _piece piece = cb->piecelist[color][i];
+		struct piece piece = cb->piecelist[color][i];
 		// Similar to the advance version above.
 		if ((piece.type == PAWN) && (cb88_get_file(piece.square) == file))
 		{
@@ -249,7 +249,7 @@ bool _is_alg_piece_move_valid(chessboard* cb, char* clean_str, struct _move* mov
     int moves_found = 0;
     for (int k = 0; k < CB88_MAX_PIECES; k++)
     {
-	struct _piece piece = cb->piecelist[color][k];
+	struct piece piece = cb->piecelist[color][k];
 	uint32_t from = piece.square;
 	if (piece.type == type &&
 	    (!has_rank_hint || (cb88_get_rank(from) == rank_hint)) &&
