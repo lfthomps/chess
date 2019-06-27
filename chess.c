@@ -38,37 +38,26 @@ int main(int argc, char* argv[])
   // Testing movement code.  This will eventually be moved out to
   // some nicer automated tests.  
   assert(chessboard_algmove(cb, "e4"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "Nd4"));
   assert(!chessboard_algmove(cb, "Nd2"));
   assert(chessboard_algmove(cb, "Nc3"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "Nh4"));
   assert(chessboard_algmove(cb, "Na4"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "Ng5"));
   assert(!chessboard_algmove(cb, "Nf6"));
   assert(chessboard_algmove(cb, "Nh3"));
   assert(!chessboard_algmove(cb, "Bf2"));
   assert(!chessboard_algmove(cb, "Bg2"));
   assert(chessboard_algmove(cb, "Bc4"));
-  display_draw_chessboard(buffer, cb);
   assert(chessboard_algmove(cb, "O-O"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "Kf2"));
   assert(chessboard_algmove(cb, "f3"));
-  display_draw_chessboard(buffer, cb);
   assert(chessboard_algmove(cb, "Kf2"));
-  display_draw_chessboard(buffer, cb);
   assert(chessboard_algmove(cb, "Ke1"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "Rf3"));
   assert(chessboard_algmove(cb, "Rf2"));
-  display_draw_chessboard(buffer, cb);
   assert(chessboard_algmove(cb, "Rf1"));
-  display_draw_chessboard(buffer, cb);
   assert(chessboard_algmove(cb, "Rh1"));
-  display_draw_chessboard(buffer, cb);
   assert(!chessboard_algmove(cb, "O-O"));
 
   display_draw_chessboard(buffer, cb);
